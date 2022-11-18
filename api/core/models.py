@@ -1,31 +1,43 @@
 from django.db import models
+from datetime import datetime
+
+def dateupdate():
+    x=datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+    print(x)
+    return x
 
 class Category(models.Model):
     categoryid = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=45)
-    parent = models.IntegerField(blank=True, null=True)
+    name = models.CharField(max_length=45,unique=True)
+    parent = models.ForeignKey('Category',blank=True, null=True,on_delete=models.CASCADE)
 
     class Meta:
         db_table = 'category'
 
+    def __str__(self):
+      return self.name
+
 class Product(models.Model):
-    idproduct = models.IntegerField(primary_key=True)  # Field name made lowercase.
-    name = models.CharField( max_length=225)  # Field name made lowercase.
+    productid = models.IntegerField(primary_key=True)  # Field name made lowercase.
+    name = models.CharField(max_length=225,unique=True)  # Field name made lowercase.
     image = models.ImageField( max_length=255)  # Field name made lowercase.
     stock = models.IntegerField( blank=True, null=True)  # Field name made lowercase.
     category = models.ForeignKey(Category, models.DO_NOTHING)  # Field name made lowercase.
 
     class Meta:
         db_table = 'product'
-        unique_together = (('idproduct', 'image'),)
+        unique_together = (('productid', 'image'),)
+
+    def __str__(self):
+      return self.name
 
 
 class Order(models.Model):
-    orderid = models.IntegerField( primary_key=True)  # Field name made lowercase.
+    orderid = models.AutoField( primary_key=True)  # Field name made lowercase.
     total = models.IntegerField()  # Field name made lowercase.
-    status = models.IntegerField()  # Field name made lowercase.
-    dateplaceorder = models.DateTimeField()  # Field name made lowercase.
-    datecomplete = models.DateTimeField()  # Field name made lowercase.
+    status = models.IntegerField(default=0)  # Field name made lowercase.
+    dateplaceorder = models.DateTimeField(default=dateupdate())  # Field name made lowercase.
+    datecomplete = models.DateTimeField(blank=True,null=True)  # Field name made lowercase.
     orderaddress = models.CharField( max_length=255)  # Field name made lowercase.
 
     class Meta:
@@ -43,21 +55,20 @@ class Orderdetails(models.Model):
 
 
 class Pricing(models.Model):
-    idpricing = models.IntegerField( primary_key=True)  # Field name made lowercase.
-    productid = models.ForeignKey('Product', models.DO_NOTHING)  # Field name made lowercase.
+    pricingid = models.IntegerField( primary_key=True)  # Field name made lowercase.
+    product = models.ForeignKey('Product', models.DO_NOTHING)  # Field name made lowercase.
     date_created = models.DateTimeField()
     date_expiry = models.DateTimeField()
-    in_active = models.IntegerField()
+    in_active = models.BooleanField()
     baseprice = models.CharField( max_length=45, blank=True, null=True)  # Field name made lowercase.
 
     class Meta:
         db_table = 'pricing'
 
 
-
 class ProductDiscount(models.Model):
     id = models.IntegerField(primary_key=True)
-    productid = models.ForeignKey(Product, models.DO_NOTHING)  # Field name made lowercase.
+    product = models.ForeignKey(Product, models.DO_NOTHING)  # Field name made lowercase.
     discountvalue = models.FloatField()  # Field name made lowercase.
     discountunit = models.CharField( max_length=20)  # Field name made lowercase.
     createdate = models.DateTimeField()  # Field name made lowercase.
